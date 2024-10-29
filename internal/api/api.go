@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/pires/go-proxyproto"
 	"net"
 	"net/http"
 	"os"
@@ -100,7 +101,9 @@ func listen(network, address string) {
 		Handler:           Handler,
 		ReadHeaderTimeout: 5 * time.Second, // Example: Set to 5 seconds
 	}
-	if err = server.Serve(ln); err != nil {
+	if err = server.Serve(&proxyproto.Listener{
+		Listener: ln,
+	}); err != nil {
 		log.Fatal().Err(err).Msg("[api] serve")
 	}
 }
@@ -133,7 +136,9 @@ func tlsListen(network, address, certFile, keyFile string) {
 		TLSConfig:         &tls.Config{Certificates: []tls.Certificate{cert}},
 		ReadHeaderTimeout: 5 * time.Second,
 	}
-	if err = server.ServeTLS(ln, "", ""); err != nil {
+	if err = server.ServeTLS(&proxyproto.Listener{
+		Listener: ln,
+	}, "", ""); err != nil {
 		log.Fatal().Err(err).Msg("[api] tls serve")
 	}
 }
